@@ -304,6 +304,9 @@ const PKVApp = (function() {
             if (gemachtigdenOptions.length === 0) {
                 showNotification("Geen gemachtigden gevonden om de dropdown te vullen.", "warning", 4000);
             }
+            
+            // Herstel alle pending values nu de opties geladen zijn
+            restorePendingGemachtigdeValues();
 
         } catch (error) {
             console.error("Error fetching gemachtigden:", error);
@@ -366,6 +369,14 @@ const PKVApp = (function() {
     function updateGemachtigdeSelectsDynamic(selectElement, selectedValue = "") {
         selectElement.innerHTML = "<option value=''>-- Kies Gemachtigde --</option>";
         
+        // Controleer of gemachtigdenOptions is geladen
+        if (!gemachtigdenOptions || gemachtigdenOptions.length === 0) {
+            logDebug("Gemachtigden options not loaded yet, waiting for restoration...");
+            // Sla de waarde op om later te herstellen
+            selectElement.dataset.pendingValue = selectedValue;
+            return;
+        }
+        
         let valueFoundInOptions = false;
 
         // Voeg de standaardopties toe
@@ -389,6 +400,22 @@ const PKVApp = (function() {
             customOption.selected = true; // Selecteer deze expliciet
             selectElement.appendChild(customOption);
         }
+        
+        // Verwijder de pending value omdat deze nu is verwerkt
+        delete selectElement.dataset.pendingValue;
+    }
+
+    /**
+     * Herstelt alle pending gemachtigde values nadat de opties zijn geladen.
+     */
+    function restorePendingGemachtigdeValues() {
+        document.querySelectorAll('.gemachtigdeSelect[data-pending-value]').forEach(selectElement => {
+            const pendingValue = selectElement.dataset.pendingValue;
+            if (pendingValue) {
+                logDebug(`Restoring pending gemachtigde value: ${pendingValue}`);
+                updateGemachtigdeSelectsDynamic(selectElement, pendingValue);
+            }
+        });
     }
 
     /**
