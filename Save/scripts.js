@@ -392,6 +392,17 @@ const PKVApp = (function() {
             selectElement.appendChild(option);
         });
 
+        // Debug logging om te zien waarom waarden niet matchen
+        if (selectedValue && !valueFoundInOptions && Config.debugMode) {
+            console.log("DEBUG: Gemachtigde value mismatch detected:");
+            console.log("- Selected value:", JSON.stringify(selectedValue));
+            console.log("- Available options:", gemachtigdenOptions.map(item => JSON.stringify(item[Config.fieldInternalNames.gemachtigden.naamPM])));
+            console.log("- Exact match test results:", gemachtigdenOptions.map(item => {
+                const pmValue = item[Config.fieldInternalNames.gemachtigden.naamPM];
+                return `"${pmValue}" === "${selectedValue}": ${pmValue === selectedValue}`;
+            }));
+        }
+
         // Als de opgeslagen waarde niet in de lijst staat, voeg deze dan alsnog toe en selecteer deze.
         if (selectedValue && !valueFoundInOptions) {
             const customOption = document.createElement("option");
@@ -479,7 +490,11 @@ const PKVApp = (function() {
             <td data-label="Acties"><button class="button button-danger button-small button-icon-only" type="button"><i class="material-icons">delete</i></button></td>
         `;
 
-        updateGemachtigdeSelectsDynamic(tr.querySelector(".gemachtigdeSelect"), (item[fn.gemachtigde] || "").trim());
+        const gemachtigdeValue = (item[fn.gemachtigde] || "").trim();
+        if (Config.debugMode && gemachtigdeValue) {
+            console.log("DEBUG: Loading saved Gemachtigde value:", JSON.stringify(gemachtigdeValue));
+        }
+        updateGemachtigdeSelectsDynamic(tr.querySelector(".gemachtigdeSelect"), gemachtigdeValue);
         
         tr.querySelector('button.button-danger').onclick = function() {
             if (confirm("Weet u zeker dat u deze rij wilt verwijderen?")) {
